@@ -20,29 +20,43 @@ class CPU:
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        with open(sys.argv[1]) as f:
+            for command in f:
+                command = command.strip()
+                program = command.split()
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+                if len(program) == 0:
+                    continue
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                if program[0][0] == "#":
+                    continue
 
+                try:
+                    self.ram[address] = int(program[0], 2)
+
+                
+                except ValueError:
+                    print(f"Invalid number: {program[0]}")
+                    sys.exit(1)
+                
+                address += 1
+
+
+        # program = []
+
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB": 
+            pass
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -69,6 +83,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         running = True
+
         while running:
             ir = self.ram[self.pc]
 
@@ -81,9 +96,24 @@ class CPU:
                 self.pc += 3
             elif ir == 0b01000111:
                 print(self.reg[operand_a])
-                self.pc +=2
-            elif ir == self.hlt:
+                self.pc += 2
+            elif ir == 0b10100010:
+                self.alu("MUL", operand_a, operand_b)
+                self.pc += 3
+            elif ir == 0b01000101:
+                self.reg[7] -=1
+                value = self.reg[operand_a]
+                self.ram[self.reg[7]] = value
+                self.pc += 2
+            elif ir == 1:
                 running = False
+
+            else:
+                print(self.reg)
+                print(self.ram)
+                print("no matches")
+                running = False
+                
 
     def ram_read(self, mdr):
         return self.ram[mdr]
