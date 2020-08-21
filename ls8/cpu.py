@@ -100,11 +100,33 @@ class CPU:
             elif ir == 0b10100010:
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
+            elif ir == 0b10100000:
+                self.alu("ADD", operand_a, operand_b)
+                self.pc +=3
             elif ir == 0b01000101:
                 self.reg[7] -=1
                 value = self.reg[operand_a]
                 self.ram[self.reg[7]] = value
                 self.pc += 2
+            elif ir == 0b01000110:
+                value = self.ram[self.reg[7]]
+                self.reg[operand_a] = value
+                self.reg[7] += 1
+                self.pc += 2
+            elif ir == 0b01010000: #Call
+                #push addy
+                ret_addy = self.pc + 2
+                self.reg[7] -= 1
+                self.ram[self.reg[7]] = ret_addy
+                #call subroutine
+                self.pc = self.reg[operand_a]
+                
+            elif ir == 0b00010001: #RET
+                #pop return addy
+                ret_addy = self.ram[self.reg[7]]
+                self.reg[7] +=1
+                #set pc to return addy
+                self.pc = ret_addy
             elif ir == 1:
                 running = False
 
